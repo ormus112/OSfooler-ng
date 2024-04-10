@@ -791,10 +791,10 @@ def cb_nmap( pl):
 
 def init(queue):
   q = nfqueue.NetfilterQueue()
-  if (queue % 2 ==  0):
+  if (queue < 21):
     q.bind(queue, cb_nmap)
     print "      [->] %s: nmap packet processor" % multiprocessing.current_process().name
-  if (queue % 2 ==  1 and (opts.osgenre or (opts.details_p0f and opts.osgenre))):
+  if (queue >= 21 and (opts.osgenre or (opts.details_p0f and opts.osgenre))):
     q.bind(queue, cb_p0f)
     print "      [->] %s: p0f packet processor" % multiprocessing.current_process().name
   try: 
@@ -916,7 +916,7 @@ def main():
     interface = opts.interface 
     try:
       q_num0 = os.listdir("/sys/class/net/").index(opts.interface) * 2
-      q_num1 = os.listdir("/sys/class/net/").index(opts.interface) * 2 + 1
+      q_num1 = os.listdir("/sys/class/net/").index(opts.interface) * 2 + 21
     except ValueError, err:
       q_num0 = -1
       q_num1 = -1
@@ -924,7 +924,7 @@ def main():
     interface = get_default_iface_name_linux()
     try:
       q_num0 = os.listdir("/sys/class/net/").index(interface) * 2
-      q_num1 = os.listdir("/sys/class/net/").index(interface) * 2 + 1
+      q_num1 = os.listdir("/sys/class/net/").index(interface) * 2 + 21
     except ValueError, err:
       q_num0 = -1
       q_num1 = -1
@@ -975,10 +975,26 @@ def main():
   # nmap mode
   if opts.os:  
     print (" [+] detected Queue %s" % q_num0)
-    os.system("iptables -A INPUT -j NFQUEUE --queue-num %s" % q_num0) 
+    os.system("iptables -A INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + 3) ))
     proc = Process(target=init,args=(q_num0,))
     procs.append(proc)
     proc.start() 
+
+    print (" [+] detected Queue 2/%s" % (q_num0 + 1))
+    proc2 = Process(target=init,args=((q_num0 + 1),))
+    procs.append(proc2)
+    proc2.start()
+
+    print (" [+] detected Queue 3/%s" % (q_num0 + 2))
+    proc3 = Process(target=init,args=((q_num0 + 2),))
+    procs.append(proc3)
+    proc3.start()
+
+    print (" [+] detected Queue 4/%s" % (q_num0 + 3))
+    proc4 = Process(target=init,args=((q_num0 + 3),))
+    procs.append(proc4)
+    proc4.start()
+
   # p0f mode
   if (opts.osgenre):
     global home_ip
@@ -996,18 +1012,18 @@ def main():
         proc.join()
       print
       # Flush all iptabels rules
-      if (q_num0 >= 0):
-        os.system("iptables -D INPUT -j NFQUEUE --queue-num %s" % q_num0) 
-      if (q_num1 >= 1):
+      if (q_num0 < 21):
+        os.system("iptables -D INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + 3) ))
+      if (q_num1 >= 21):
         os.system("iptables -D OUTPUT -p TCP --syn -j NFQUEUE --queue-num %s" % q_num1) 
       print " [+] Active queues removed"
       print " [+] Exiting OSfooler..." 
   except KeyboardInterrupt:
       print
       # Flush all iptabels rules
-      if (q_num0 >= 0):
-        os.system("iptables -D INPUT -j NFQUEUE --queue-num %s" % q_num0) 
-      if (q_num1 >= 1):
+      if (q_num0 < 21):
+        os.system("iptables -D INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + 3) ))
+      if (q_num1 >= 21):
         os.system("iptables -D OUTPUT -p TCP --syn -j NFQUEUE --queue-num %s" % q_num1) 
       print " [+] Active queues removed"
       print " [+] Exiting OSfooler..."

@@ -1,2 +1,2 @@
 dpkt
-scapy
+scapy==2.4.5
