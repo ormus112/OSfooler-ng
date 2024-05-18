@@ -1,2 +1,3 @@
 dpkt
 scapy==2.4.5
+NetfilterQueue==0.9.0
