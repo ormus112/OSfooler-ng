@@ -39,6 +39,10 @@ IPID = 0
 q_num0 = -1
 q_num1 = -1
 
+# NFQueues input count
+# TODO - make it in command line argument
+q_input = 8
+
 # TCP packet information
 # Control flags
 TH_FIN = 0x01          # end of data
@@ -974,26 +978,14 @@ def main():
   procs = []
   # nmap mode
   if opts.os:  
-    print (" [+] detected Queue %s" % q_num0)
-    os.system("iptables -A INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + 3) ))
-    proc = Process(target=init,args=(q_num0,))
-    procs.append(proc)
-    proc.start() 
-
-    print (" [+] detected Queue 2/%s" % (q_num0 + 1))
-    proc2 = Process(target=init,args=((q_num0 + 1),))
-    procs.append(proc2)
-    proc2.start()
-
-    print (" [+] detected Queue 3/%s" % (q_num0 + 2))
-    proc3 = Process(target=init,args=((q_num0 + 2),))
-    procs.append(proc3)
-    proc3.start()
-
-    print (" [+] detected Queue 4/%s" % (q_num0 + 3))
-    proc4 = Process(target=init,args=((q_num0 + 3),))
-    procs.append(proc4)
-    proc4.start()
+    print (" [+] Input queues count is %s, first queue number is %s " % (q_input, q_num0) )
+    print (" [+] Use --queue-balance %s:%s" % ( q_num0 , (q_num0 + q_input - 1) ))
+    os.system("iptables -A INPUT -j NFQUEUE --queue-balance %s:%s " % ( q_num0 , (q_num0 + q_input - 1) ))
+    for i in range(q_input):
+      print (" [+] Input queue %s" % (q_num0 + i))
+      proc = Process(target=init,args=((q_num0 + i),))
+      procs.append(proc)
+      proc.start()
 
   # p0f mode
   if (opts.osgenre):
@@ -1013,7 +1005,7 @@ def main():
       print
       # Flush all iptabels rules
       if (q_num0 < 21):
-        os.system("iptables -D INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + 3) ))
+        os.system("iptables -D INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + q_input - 1) ))
       if (q_num1 >= 21):
         os.system("iptables -D OUTPUT -p TCP --syn -j NFQUEUE --queue-num %s" % q_num1) 
       print " [+] Active queues removed"
@@ -1022,7 +1014,7 @@ def main():
       print
       # Flush all iptabels rules
       if (q_num0 < 21):
-        os.system("iptables -D INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + 3) ))
+        os.system("iptables -D INPUT -j NFQUEUE --queue-balance %s:%s" % ( q_num0 , (q_num0 + q_input - 1) ))
       if (q_num1 >= 21):
         os.system("iptables -D OUTPUT -p TCP --syn -j NFQUEUE --queue-num %s" % q_num1) 
       print " [+] Active queues removed"
