@@ -582,6 +582,10 @@ S44:128:1:48:M*,N,N,S:.:Windows:XP SP1+, 2000 SP3
 65535:64:1:52:M1460,N,W2,N,N,S:.:Windows:2003 (1)
 65535:64:1:48:M1460,N,N,S:.:Windows:2003 (2)
 
+# Windows 10 on Ethernet link
+
+S44:128:1:48:M1460,N,W8,N,N,S:.:Windows:10
+
 # Odds, ends, mods:
 
 S52:128:1:48:M1260,N,N,S:.:Windows:XP/2000 via Cisco
