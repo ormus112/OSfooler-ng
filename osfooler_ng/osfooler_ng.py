@@ -43,6 +43,9 @@ q_num1 = -1
 # TODO - make it in command line argument
 q_input = 8
 
+# NFQueues queue maxlen
+q_maxlen = 16384
+
 # TCP packet information
 # Control flags
 TH_FIN = 0x01          # end of data
@@ -796,11 +799,11 @@ def cb_nmap( pl):
 def init(queue):
   q = nfqueue.NetfilterQueue()
   if (queue < 21):
-    q.bind(queue, cb_nmap)
-    print "      [->] %s: nmap packet processor" % multiprocessing.current_process().name
+    q.bind(queue, cb_nmap, q_maxlen)
+    print "      [->] %s: nmap packet processor, queue maxlen is %s" % (multiprocessing.current_process().name, q_maxlen)
   if (queue >= 21 and (opts.osgenre or (opts.details_p0f and opts.osgenre))):
-    q.bind(queue, cb_p0f)
-    print "      [->] %s: p0f packet processor" % multiprocessing.current_process().name
+    q.bind(queue, cb_p0f, q_maxlen)
+    print "      [->] %s: p0f packet processor, queue maxlen is %s" % (multiprocessing.current_process().name, q_maxlen)
   try: 
     q.run()
   except KeyboardInterrupt,err:
